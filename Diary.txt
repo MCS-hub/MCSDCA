@@ -1,0 +1,8 @@
+12/11/2021: model search
+epochs = 30
+
+
+test run the best model on LSTM to 50 epochs: improve the test rmse 29 ->27.9
+
+
+12/11/2021: git, cuda, search with a wider range
