@@ -27,7 +27,6 @@ from utils import *
 # ap('-g', help='GPU idx.', type=int, default=0)
 # ap('-s', help='seed', type=int, default=42)
 # opt = vars(parser.parse_args())
-random_seed_list = [40, 41, 42, 43, 44]
 
 torch.manual_seed(42)
 # check gpu
@@ -81,7 +80,9 @@ ref_dict = {'FD001_FNN': FD001_FNN, 'FD001_LSTM': FD001_LSTM, 'FD002_FNN': FD002
             'FD003_FNN': FD003_FNN, 'FD003_LSTM': FD003_LSTM, 'FD004_FNN': FD004_FNN, 'FD004_LSTM': FD004_LSTM}
 
 
-dataset_list = ['FD001','FD002','FD003','FD004']
+random_seed_list = [42]
+
+dataset_list = ['FD002', 'FD003', 'FD004']
 
 model_list = ['cmapssfnn', 'cmapsslstm']
 
@@ -328,40 +329,202 @@ for i_dataset in dataset_list:
         # plt.plot(fs_list_total)
         # plt.show()
 
-# # plot figures:
-# import pickle
-# from matplotlib import pyplot as plt
-# model_list = ['cmapssfnn']
-# dataset_list = ['FD001']
-# for i_model in model_list:
-#     for i_dataset in dataset_list:
-#
-#         with open(i_model+i_dataset+'EntropySDCA'+'.pickle','rb') as f:
-#             [fs_list_total1, time_total1, fs_val1, fs_test1] = pickle.load(f)
-#         with open(i_model+i_dataset+'Adam'+'.pickle','rb') as g:
-#             [fs_list_total2, time_total2, fs_val2, fs_test2] = pickle.load(g)
-#         with open(i_model+i_dataset+'Adagrad'+'.pickle','rb') as g:
-#             [fs_list_total3, time_total3, fs_val3, fs_test3] = pickle.load(g)
-#         with open(i_model+i_dataset+'RMSprop'+'.pickle','rb') as g:
-#             [fs_list_total4, time_total4, fs_val4, fs_test4] = pickle.load(g)
-#
-#         # print(i_model+i_dataset)
-#         # print(np.sqrt(fs_list_total3[-1].numpy()),'/',np.sqrt(fs_val3).numpy(),'/',np.sqrt(fs_test3).numpy(),'/',time_total3)
-#         print(np.sqrt(fs_list_total1[-1].numpy()), '/', np.sqrt(fs_val1).numpy(), '/', np.sqrt(fs_test1).numpy(), '/',time_total1)
-#         print(np.sqrt(fs_list_total2[-1].numpy()), '/', np.sqrt(fs_val2).numpy(), '/', np.sqrt(fs_test2).numpy(), '/',time_total2)
-#         print(np.sqrt(fs_list_total3[-1].numpy()), '/', np.sqrt(fs_val3).numpy(), '/', np.sqrt(fs_test3).numpy(), '/',time_total3)
-#         print(np.sqrt(fs_list_total4[-1].numpy()), '/', np.sqrt(fs_val4).numpy(), '/', np.sqrt(fs_test4).numpy(), '/',time_total4)
-#
-#         plt.figure()
-#         plt.plot(fs_list_total1, label='EntropySDCA')
-#         plt.plot(fs_list_total2, label='Adam', linestyle='dashed')
-#         plt.plot(fs_list_total3, label='Adagrad')
-#         plt.plot(fs_list_total4, label='RMSprop', linestyle='dashed')
-#         plt.legend()
-#         plt.xlabel('#grads/(minibatch*Langevin)')
-#         plt.ylabel('train mse')
-#         plt.savefig(i_model+i_dataset+'.png')
-#         plt.close()
+
+# collect results
+import pickle
+from matplotlib import pyplot as plt
+import numpy as np
+import xlsxwriter
+
+workbook = xlsxwriter.Workbook('cross_validation.xlsx')
+# Create a format to use in the merged range.
+
+worksheet = workbook.add_worksheet()
+
+random_seed_list = [42]
+dataset_list = ['FD001']
+model_list = ['cmapssfnn', 'cmapsslstm']
+
+
+i_count = 0
+for i_model in model_list:
+    for i_dataset in dataset_list:
+        #write title
+        i_count = i_count + 2
+        worksheet.write(i_count,0,i_dataset+'_'+i_model)
+
+        fs_train1_alsed = list()
+        fs_train2_alsed = list()
+        fs_train3_alsed = list()
+        fs_train4_alsed = list()
+        time_total1_alsed = list()
+        time_total2_alsed = list()
+        time_total3_alsed = list()
+        time_total4_alsed = list()
+        fs_val1_alsed = list()
+        fs_val2_alsed = list()
+        fs_val3_alsed = list()
+        fs_val4_alsed = list()
+        fs_test1_alsed = list()
+        fs_test2_alsed = list()
+        fs_test3_alsed = list()
+        fs_test4_alsed = list()
+
+        for seed in random_seed_list:
+            with open(i_model+i_dataset+'EntropySDCA'+'_seed'+str(seed)+'.pickle','rb') as f:
+                [fs_list_total1, time_total1, fs_val1, fs_test1] = pickle.load(f)
+            with open(i_model+i_dataset+'Adam'+'_seed'+str(seed)+'.pickle','rb') as g:
+                [fs_list_total2, time_total2, fs_val2, fs_test2] = pickle.load(g)
+            with open(i_model+i_dataset+'Adagrad'+'_seed'+str(seed)+'.pickle','rb') as g:
+                [fs_list_total3, time_total3, fs_val3, fs_test3] = pickle.load(g)
+            with open(i_model+i_dataset+'RMSprop'+'_seed'+str(seed)+'.pickle','rb') as g:
+                [fs_list_total4, time_total4, fs_val4, fs_test4] = pickle.load(g)
+
+            fs_train1_alsed.append(fs_list_total1[-1])
+            fs_train2_alsed.append(fs_list_total2[-1])
+            fs_train3_alsed.append(fs_list_total3[-1])
+            fs_train4_alsed.append(fs_list_total4[-1])
+
+            time_total1_alsed.append(time_total1)
+            time_total2_alsed.append(time_total2)
+            time_total3_alsed.append(time_total3)
+            time_total4_alsed.append(time_total4)
+
+            fs_val1_alsed.append(fs_val1)
+            fs_val2_alsed.append(fs_val2)
+            fs_val3_alsed.append(fs_val3)
+            fs_val4_alsed.append(fs_val4)
+
+            fs_test1_alsed.append(fs_test1)
+            fs_test2_alsed.append(fs_test2)
+            fs_test3_alsed.append(fs_test3)
+            fs_test4_alsed.append(fs_test4)
+
+        root_fs_train1_alsed = np.sqrt(np.array(fs_train1_alsed))
+        root_fs_train2_alsed = np.sqrt(np.array(fs_train2_alsed))
+        root_fs_train3_alsed = np.sqrt(np.array(fs_train3_alsed))
+        root_fs_train4_alsed = np.sqrt(np.array(fs_train4_alsed))
+
+        root_fs_val1_alsed = np.sqrt(np.array(fs_val1_alsed))
+        root_fs_val2_alsed = np.sqrt(np.array(fs_val2_alsed))
+        root_fs_val3_alsed = np.sqrt(np.array(fs_val3_alsed))
+        root_fs_val4_alsed = np.sqrt(np.array(fs_val4_alsed))
+
+        root_fs_test1_alsed = np.sqrt(np.array(fs_test1_alsed))
+        root_fs_test2_alsed = np.sqrt(np.array(fs_test2_alsed))
+        root_fs_test3_alsed = np.sqrt(np.array(fs_test3_alsed))
+        root_fs_test4_alsed = np.sqrt(np.array(fs_test4_alsed))
+
+        # mean and std
+        mean_root_fs_train1_alsed = np.mean(root_fs_train1_alsed)
+        mean_root_fs_train2_alsed = np.mean(root_fs_train2_alsed)
+        mean_root_fs_train3_alsed = np.mean(root_fs_train3_alsed)
+        mean_root_fs_train4_alsed = np.mean(root_fs_train4_alsed)
+        std_root_fs_train1_alsed = np.std(root_fs_train1_alsed)
+        std_root_fs_train2_alsed = np.std(root_fs_train2_alsed)
+        std_root_fs_train3_alsed = np.std(root_fs_train3_alsed)
+        std_root_fs_train4_alsed = np.std(root_fs_train4_alsed)
+
+        mean_root_fs_val1_alsed = np.mean(root_fs_val1_alsed)
+        mean_root_fs_val2_alsed = np.mean(root_fs_val2_alsed)
+        mean_root_fs_val3_alsed = np.mean(root_fs_val3_alsed)
+        mean_root_fs_val4_alsed = np.mean(root_fs_val4_alsed)
+        std_root_fs_val1_alsed = np.std(root_fs_val1_alsed)
+        std_root_fs_val2_alsed = np.std(root_fs_val2_alsed)
+        std_root_fs_val3_alsed = np.std(root_fs_val3_alsed)
+        std_root_fs_val4_alsed = np.std(root_fs_val4_alsed)
+
+        mean_root_fs_test1_alsed = np.mean(root_fs_test1_alsed)
+        mean_root_fs_test2_alsed = np.mean(root_fs_test2_alsed)
+        mean_root_fs_test3_alsed = np.mean(root_fs_test3_alsed)
+        mean_root_fs_test4_alsed = np.mean(root_fs_test4_alsed)
+        std_root_fs_test1_alsed = np.std(root_fs_test1_alsed)
+        std_root_fs_test2_alsed = np.std(root_fs_test2_alsed)
+        std_root_fs_test3_alsed = np.std(root_fs_test3_alsed)
+        std_root_fs_test4_alsed = np.std(root_fs_test4_alsed)
+
+        mean_time_total1_alsed = np.mean(time_total1_alsed)
+        mean_time_total2_alsed = np.mean(time_total2_alsed)
+        mean_time_total3_alsed = np.mean(time_total3_alsed)
+        mean_time_total4_alsed = np.mean(time_total4_alsed)
+        std_time_total1_alsed = np.std(time_total1_alsed)
+        std_time_total2_alsed = np.std(time_total2_alsed)
+        std_time_total3_alsed = np.std(time_total3_alsed)
+        std_time_total4_alsed = np.std(time_total4_alsed)
+
+        #worksheet.write(i_count, 0, 'algorithm')
+        worksheet.write(i_count,1,'train_rmse_m')
+        worksheet.write(i_count, 2, 'train_rmse_std')
+        worksheet.write(i_count,3,'val_rmse_m')
+        worksheet.write(i_count, 4, 'val_rmse_std')
+        worksheet.write(i_count,5,'test_rmse_m')
+        worksheet.write(i_count, 6, 'test_rmse_std')
+        worksheet.write(i_count,7,'time_m')
+        worksheet.write(i_count, 8, 'time_std')
+
+        # MC SDCA
+        i_count = i_count+1
+        worksheet.write(i_count,0,'MC_SDCA')
+        worksheet.write(i_count,1, mean_root_fs_train1_alsed)
+        worksheet.write(i_count, 2, std_root_fs_train1_alsed)
+        worksheet.write(i_count,3, mean_root_fs_val1_alsed)
+        worksheet.write(i_count, 4, std_root_fs_val1_alsed)
+        worksheet.write(i_count,5, mean_root_fs_test1_alsed)
+        worksheet.write(i_count, 6, std_root_fs_test1_alsed)
+        worksheet.write(i_count,7, mean_time_total1_alsed)
+        worksheet.write(i_count, 8, std_time_total1_alsed)
+
+        # Adam
+        i_count = i_count+1
+        worksheet.write(i_count,0,'Adam')
+        worksheet.write(i_count,1, mean_root_fs_train2_alsed)
+        worksheet.write(i_count, 2, std_root_fs_train2_alsed)
+        worksheet.write(i_count,3, mean_root_fs_val2_alsed)
+        worksheet.write(i_count, 4, std_root_fs_val2_alsed)
+        worksheet.write(i_count,5, mean_root_fs_test2_alsed)
+        worksheet.write(i_count, 6, std_root_fs_test2_alsed)
+        worksheet.write(i_count,7, mean_time_total2_alsed)
+        worksheet.write(i_count, 8, std_time_total2_alsed)
+
+        # Adagrad
+        i_count = i_count+1
+        worksheet.write(i_count,0,'Adagrad')
+        worksheet.write(i_count,1, mean_root_fs_train3_alsed)
+        worksheet.write(i_count, 2, std_root_fs_train3_alsed)
+        worksheet.write(i_count,3, mean_root_fs_val3_alsed)
+        worksheet.write(i_count, 4, std_root_fs_val3_alsed)
+        worksheet.write(i_count,5, mean_root_fs_test3_alsed)
+        worksheet.write(i_count, 6, std_root_fs_test3_alsed)
+        worksheet.write(i_count,7, mean_time_total3_alsed)
+        worksheet.write(i_count, 8, std_time_total3_alsed)
+
+        # RMSprop
+        i_count = i_count+1
+        worksheet.write(i_count,0,'RMSprop')
+        worksheet.write(i_count,1, mean_root_fs_train4_alsed)
+        worksheet.write(i_count, 2, std_root_fs_train4_alsed)
+        worksheet.write(i_count,3, mean_root_fs_val4_alsed)
+        worksheet.write(i_count, 4, std_root_fs_val4_alsed)
+        worksheet.write(i_count,5, mean_root_fs_test4_alsed)
+        worksheet.write(i_count, 6, std_root_fs_test4_alsed)
+        worksheet.write(i_count,7, mean_time_total4_alsed)
+        worksheet.write(i_count, 8, std_time_total4_alsed)
+
+
+        # plt.figure()
+        # plt.plot(fs_list_total1, label='EntropySDCA')
+        # plt.plot(fs_list_total2, label='Adam', linestyle='dashed')
+        # plt.plot(fs_list_total3, label='Adagrad')
+        # plt.plot(fs_list_total4, label='RMSprop', linestyle='dashed')
+        # plt.legend()
+        # plt.xlabel('#grads/(minibatch*Langevin)')
+        # plt.ylabel('train mse')
+        # plt.savefig(i_model+i_dataset+'.png')
+        # plt.close()
+
+workbook.close()
+
+
 
 
 

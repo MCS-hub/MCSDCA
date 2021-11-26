@@ -87,7 +87,7 @@ class EntropySGD(Optimizer):
                 # update weights
                 w.data.add_(-llr, dw)
                 #mw.mul_(beta1).add_(1-beta1, w.data)  #exponential
-                mw.mul_((L+1)/(L+2)).add_(1/(L+2),w.data)  #normal average
+                mw.mul_((i + 1) / (i + 2)).add_(1 / (i + 2), w.data)
 
         if L > 0:
             # copy model back
