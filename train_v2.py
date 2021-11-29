@@ -80,9 +80,9 @@ ref_dict = {'FD001_FNN': FD001_FNN, 'FD001_LSTM': FD001_LSTM, 'FD002_FNN': FD002
             'FD003_FNN': FD003_FNN, 'FD003_LSTM': FD003_LSTM, 'FD004_FNN': FD004_FNN, 'FD004_LSTM': FD004_LSTM}
 
 
-random_seed_list = [42]
+random_seed_list = [42, 43, 44, 45, 46]
 
-dataset_list = ['FD002', 'FD003', 'FD004']
+dataset_list = ['FD001', 'FD002', 'FD003', 'FD004']
 
 model_list = ['cmapssfnn', 'cmapsslstm']
 
@@ -341,8 +341,8 @@ workbook = xlsxwriter.Workbook('cross_validation.xlsx')
 
 worksheet = workbook.add_worksheet()
 
-random_seed_list = [42]
-dataset_list = ['FD001']
+random_seed_list = [42, 43, 44, 45, 46]
+dataset_list = ['FD002', 'FD003', 'FD004']
 model_list = ['cmapssfnn', 'cmapsslstm']
 
 
